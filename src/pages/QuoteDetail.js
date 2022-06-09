@@ -1,63 +1,58 @@
-import { Fragment } from "react/cjs/react.production.min";
-import {
-  useParams,
-  Route,
-  Link,
-  useRouteMatch,
-} from "react-router-dom/cjs/react-router-dom.min";
+import { Fragment, useEffect } from 'react';
+import { useParams, Route, Link, useRouteMatch } from 'react-router-dom';
 
-import HighlightedQuote from "../components/quotes/HighlightedQuote";
-import Comments from "../components/comments/Comments";
+import HighlightedQuote from '../components/quotes/HighlightedQuote';
+import Comments from '../components/comments/Comments';
+import useHttp from '../hooks/use-http';
+import { getSingleQuote } from '../lib/api';
+import LoadingSpinner from '../components/UI/LoadingSpinner';
 
-function QuoteDetail() {
+const QuoteDetail = () => {
   const match = useRouteMatch();
-  console.log(match);
   const params = useParams();
 
-  const DUMMY_QUOTES = [
-    {
-      id: "q1",
-      author: "Max",
-      text: "Learnig React is hard",
-    },
-    {
-      id: "q2",
-      author: "Jean-Marc",
-      text: "Hello World",
-    },
-    {
-      id: "q3",
-      author: "Jp",
-      text: "Have fun",
-    },
-    {
-      id: "q4",
-      author: "Tany",
-      text: "Just an another person",
-    },
-  ];
+  const { quoteId } = params;
 
-  const quote = DUMMY_QUOTES.find((quote) => quote.id === params.quoteId);
+  const { sendRequest, status, data: loadedQuote, error } = useHttp(
+    getSingleQuote,
+    true
+  );
 
-  if (!quote) {
+  useEffect(() => {
+    sendRequest(quoteId);
+  }, [sendRequest, quoteId]);
+
+  if (status === 'pending') {
+    return (
+      <div className='centered'>
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <p className='centered'>{error}</p>;
+  }
+
+  if (!loadedQuote.text) {
     return <p>No quote found!</p>;
   }
 
   return (
     <Fragment>
-      <HighlightedQuote text={quote.text} author={quote.author} />
-      <Route path={`/quotes/${params.quoteId}`} exact>
-        <div className="centered">
-          <Link className="btn--flat" to={`/quotes/${params.quoteId}/comments`}>
+      <HighlightedQuote text={loadedQuote.text} author={loadedQuote.author} />
+      <Route path={match.path} exact>
+        <div className='centered'>
+          <Link className='btn--flat' to={`${match.url}/comments`}>
             Load Comments
           </Link>
         </div>
       </Route>
-      <Route path={`/quotes/${params.quoteId}/comments`} exact>
+      <Route path={`${match.path}/comments`}>
         <Comments />
       </Route>
     </Fragment>
   );
-}
+};
 
 export default QuoteDetail;
