@@ -3,12 +3,17 @@ import {
   useParams,
   Route,
   Link,
+  useRouteMatch,
 } from "react-router-dom/cjs/react-router-dom.min";
 
 import HighlightedQuote from "../components/quotes/HighlightedQuote";
 import Comments from "../components/comments/Comments";
 
 function QuoteDetail() {
+  const match = useRouteMatch();
+  console.log(match);
+  const params = useParams();
+
   const DUMMY_QUOTES = [
     {
       id: "q1",
@@ -31,7 +36,7 @@ function QuoteDetail() {
       text: "Just an another person",
     },
   ];
-  const params = useParams();
+
   const quote = DUMMY_QUOTES.find((quote) => quote.id === params.quoteId);
 
   if (!quote) {
